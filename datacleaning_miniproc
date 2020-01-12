@@ -1,0 +1,436 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[701]:
+
+
+import os
+
+from scipy import stats
+
+# Getting all the arff files from the current directory
+files = [arff for arff in os.listdir('.') if arff.endswith(".arff")]
+
+# Function for converting arff list to csv list
+def toCsv(content):
+    data = False
+    header = ""
+    newContent = []
+    for line in content:
+        if not data:
+            if "@attribute" in line:
+                attri = line.split()
+                columnName = attri[attri.index("@attribute")+1]
+                header = header + columnName + ","
+            elif "@data" in line:
+                data = True
+                header = header[:-1]
+                header += '\n'
+                newContent.append(header)
+        else:
+            newContent.append(line)
+    return newContent
+
+# Main loop for reading and writing files
+for file in files:
+    with open(file , "r") as inFile:
+        content = inFile.readlines()
+        name,ext = os.path.splitext(inFile.name)
+        new = toCsv(content)
+        with open(name+".csv", "w") as outFile:
+            outFile.writelines(new)
+
+
+# In[702]:
+
+
+def show_missing_values(data):
+    missing_data = data.isnull()
+    for column in missing_data.columns.values.tolist():
+        print(column)
+        print (missing_data[column].value_counts())
+        print("")
+        
+def show_unique_values(data_frame):
+    print("Unique value for dataset attributes :\n")
+    for column in data_frame.columns:
+        print(column, " " ,data_frame[column].unique(), "\n") 
+
+
+# In[703]:
+
+
+from scipy.io import arff
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+masterdata_csv = pd.read_csv('data.csv')
+masterdata_csv.replace(r'   ', np.NaN)
+
+masterdata_csv = masterdata_csv.applymap(lambda x: np.nan if isinstance(x, str) and x.isspace() else x)
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    print(masterdata_csv)
+
+masterdata_csv.to_csv("data1.csv")
+
+
+# In[704]:
+
+
+df = masterdata_csv
+df.columns
+
+
+# In[705]:
+
+
+print(df['Hour'].unique())
+print(df['Immobilized_bus'].unique())
+print(df['Broken_Truck'].unique())
+print(df['Vehicle_excess'].unique())
+print(df['Accident_victim'].unique())
+print(df['Running_over'].unique())
+print(df['Fire_vehicles'].unique())
+print(df['Occurrence_involving_freight'].unique())
+print(df['Incident_involving_dangerous_freight'].unique())
+print(df['Lack_of_electricity'].unique())
+print(df['Fire'].unique())
+print(df['Point_of_flooding'].unique())
+print(df['Manifestations'].unique())
+print(df['Defect_in_the_network_of_trolleybuses'].unique())
+print(df['Tree_on_the_road'].unique())
+print(df['Semaphore_off'].unique())
+print(df['Intermittent_Semaphore'].unique())
+print(df['Slowness_in_traffic_percent'].unique())
+
+
+# In[706]:
+
+
+df.head()
+
+
+# In[707]:
+
+
+traffic_df = pd.DataFrame()
+
+traffic_df['Hour'] = df['Hour']
+traffic_df['Immobilized_bus'] = df['Immobilized_bus']
+traffic_df['Broken_Truck'] = df['Broken_Truck']
+traffic_df['Vehicle_excess'] = df['Vehicle_excess']
+traffic_df['Accident_victim'] = df['Accident_victim']
+traffic_df['Running_over'] = df['Running_over']
+traffic_df['Fire_vehicles'] = df['Fire_vehicles']
+traffic_df['Occurrence_involving_freight'] = df['Occurrence_involving_freight']
+traffic_df['Incident_involving_dangerous_freight'] = df['Incident_involving_dangerous_freight']
+traffic_df['Lack_of_electricity'] = df['Lack_of_electricity']
+traffic_df['Fire'] = df['Fire']
+traffic_df['Point_of_flooding'] = df['Point_of_flooding']
+traffic_df['Manifestations'] = df['Manifestations']
+traffic_df['Defect_in_the_network_of_trolleybuses'] = df['Defect_in_the_network_of_trolleybuses']
+traffic_df['Tree_on_the_road'] = df['Tree_on_the_road']
+traffic_df['Semaphore_off'] = df['Semaphore_off']
+traffic_df['Intermittent_Semaphore'] = df['Intermittent_Semaphore']
+traffic_df['Slowness_in_traffic_percent'] = df['Slowness_in_traffic_percent']
+
+
+# In[708]:
+
+
+traffic_df.dtypes
+
+
+# In[709]:
+
+
+traffic_df['Vehicle_excess'] = traffic_df['Vehicle_excess'].astype(str)
+
+traffic_df['Accident_victim']= traffic_df['Accident_victim'].astype(str).astype(float)
+traffic_df['Running_over']= traffic_df['Running_over'].astype(str)
+traffic_df['Fire_vehicles']= traffic_df['Fire_vehicles'].astype(str)
+
+traffic_df['Incident_involving_dangerous_freight'] = traffic_df['Incident_involving_dangerous_freight'].astype(str).astype(float)
+
+traffic_df['Defect_in_the_network_of_trolleybuses'] = traffic_df['Defect_in_the_network_of_trolleybuses'].astype(str).astype(float)
+
+traffic_df['Semaphore_off'] = traffic_df['Semaphore_off'].astype(str).astype(float)
+
+
+
+# In[710]:
+
+
+traffic_df.dtypes
+
+
+# In[711]:
+
+
+mode_a = stats.mode(traffic_df['Accident_victim'])
+print(mode_a[0])
+
+traffic_df['Accident_victim'] = traffic_df['Accident_victim'].fillna(traffic_df['Accident_victim'].mode()[0])
+
+mode_s = stats.mode(traffic_df['Semaphore_off'])
+
+traffic_df['Semaphore_off'] = traffic_df['Semaphore_off'].fillna(traffic_df['Semaphore_off'].mode()[0])
+
+
+mode_i = stats.mode(traffic_df['Incident_involving_dangerous_freight'])
+print(mode_i)
+
+traffic_df['Incident_involving_dangerous_freight'] = traffic_df['Incident_involving_dangerous_freight'].fillna(traffic_df['Incident_involving_dangerous_freight'].mode()[0])
+
+print(traffic_df['Incident_involving_dangerous_freight'])
+
+
+# In[712]:
+
+
+
+traffic_df['Defect_in_the_network_of_trolleybuses'] = traffic_df['Defect_in_the_network_of_trolleybuses'].fillna(traffic_df['Defect_in_the_network_of_trolleybuses'].mode()[0])
+#m = stats.mode(traffic_df['Defect_in_the_network_of_trolleybuses'])
+#print(m)
+
+
+# In[713]:
+
+
+print(traffic_df['Hour'])
+
+
+# In[714]:
+
+
+dictionary = {':':'.'}
+traffic_df['Hour'].replace(dictionary, regex=True,inplace=True)
+traffic_df['Hour'] = traffic_df['Hour'].astype(str).astype(float)
+
+traffic_df['Vehicle_excess'] = traffic_df['Vehicle_excess'].str.upper() 
+
+dictionary_1 = {'T':'1','F':'0'}
+traffic_df['Vehicle_excess'].replace(dictionary_1, regex=True,inplace=True)
+traffic_df['Vehicle_excess'] = traffic_df['Vehicle_excess'].astype(str).astype(float)
+
+print(traffic_df['Hour'])
+
+#Running_over   
+dictionary_2 = {'YES':'1','NO':'0'}
+traffic_df['Running_over'].replace(dictionary_2, regex=True,inplace=True)
+traffic_df['Running_over'] = traffic_df['Running_over'].astype(str).astype(float)
+
+#Fire_vehicles   
+
+dictionary_3 = {'YES':'1','NO':'0'}
+traffic_df['Fire_vehicles'].replace(dictionary_3, regex=True,inplace=True)
+traffic_df['Fire_vehicles'] = traffic_df['Fire_vehicles'].astype(str).astype(float)
+
+
+# In[715]:
+
+
+#group_names = ['Moring', 'Afternoon', 'Noon', 'Evening']
+#traffic_df['Hour_Binned'] = pd.cut(traffic_df['Hour'], 4, labels=group_names)
+
+
+# In[716]:
+
+
+#traffic_df[['Hour','Hour_Binned']].tail(100)
+
+
+# In[717]:
+
+
+#traffic_df['Hour_Binned'].unique()
+
+
+# In[718]:
+
+
+traffic_df.dtypes
+
+
+# In[719]:
+
+
+
+show_missing_values(traffic_df)
+
+
+# In[720]:
+
+
+show_unique_values(traffic_df)
+
+
+# In[721]:
+
+
+traffic_df['Broken_Truck'].hist(bins=5, grid=False)
+
+
+# In[722]:
+
+
+q_hi = traffic_df["Broken_Truck"].quantile(0.99)
+
+traffic_df_filtered = traffic_df[traffic_df["Broken_Truck"] < q_hi]
+
+q_low = traffic_df["Defect_in_the_network_of_trolleybuses"].quantile(0.25)
+
+traffic_df_filtered = traffic_df_filtered[traffic_df_filtered["Defect_in_the_network_of_trolleybuses"] >= q]
+
+
+# In[723]:
+
+
+show_unique_values(traffic_df_filtered)
+
+
+# In[724]:
+
+
+traffic_df_filtered.loc[traffic_df_filtered['Running_over'] < 1, 'Running_over'] = 0
+traffic_df_filtered.loc[traffic_df_filtered['Running_over'] > 0, 'Running_over'] = 1
+
+traffic_df_filtered.loc[traffic_df_filtered['Manifestations'] > 0, 'Manifestations'] = 1
+traffic_df_filtered.loc[traffic_df_filtered['Manifestations'] < 1, 'Manifestations'] = 0
+
+show_unique_values(traffic_df_filtered)
+
+
+# In[725]:
+
+
+import seaborn as sns
+sns.boxplot(x=traffic_df_filtered['Defect_in_the_network_of_trolleybuses'])
+
+
+# In[726]:
+
+
+traffic_df_filtered['Defect_in_the_network_of_trolleybuses'].unique()
+
+
+# In[727]:
+
+
+#mean_d = traffic_df['Defect_in_the_network_of_trolleybuses'].median()
+
+
+
+#traffic_df['Defect_in_the_network_of_trolleybuses'] = traffic_df['Defect_in_the_network_of_trolleybuses'].astype(str).astype(float)
+
+
+# In[728]:
+
+
+
+z = np.abs(stats.zscore(traffic_df['Defect_in_the_network_of_trolleybuses']))
+print(z)
+
+
+# In[729]:
+
+
+X = df.iloc[:,0:17]
+y = df.iloc[:,-1]
+
+corrmat = df.corr()
+
+top_corr_features = corrmat.index
+
+
+# In[731]:
+
+
+traffic_df_filtered.shape
+
+
+# In[736]:
+
+
+group_names = [5, 10, 15, 20, 25]
+traffic_df_filtered['slowness_traffic_Percent_binned'] = pd.cut(traffic_df_filtered['Slowness_in_traffic_percent'], 5, labels=group_names)
+
+
+# In[737]:
+
+
+show_unique_values(traffic_df_filtered)
+
+
+# In[739]:
+
+
+traffic_df_filtered[['Slowness_in_traffic_percent','slowness_traffic_Percent_binned']].tail(10)
+
+
+# In[740]:
+
+
+#column reduction
+traffic_df_filtered = traffic_df_filtered.drop(['Slowness_in_traffic_percent'], axis=1) 
+
+
+# In[741]:
+
+
+plt.figure(figsize=(25,25))
+sns.heatmap(df[top_corr_features].corr(), annot=True, cmap=plt.cm.Reds)
+plt.show()
+
+
+# In[746]:
+
+
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+
+# In[747]:
+
+
+import matplotlib.pyplot as plt
+
+
+# In[748]:
+
+
+def show_top_decition_classifier_feature(data, classifier, top_k):
+    #Prepare the independent and dependent attributes sets
+    X = data.iloc[:,1:17]  #independent columns
+    y = data.iloc[:,-1]    #target column i.e price range
+
+    if classifier == "ExtraTreesClassifier":
+        classifier = ExtraTreesClassifier
+    elif classifier == "DecisionTreeClassifier":
+        classifier = DecisionTreeClassifier
+       
+    model = classifier()
+    model.fit(X,y)
+
+    #use inbuilt class feature_importances of tree based classifiers
+    print(model.feature_importances_) 
+
+    #plot graph of feature importances for better visualization
+    feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+    feat_importances.nlargest(top_k).plot(kind='barh')
+    plt.show()
+
+
+# In[749]:
+
+
+show_top_decition_classifier_feature(traffic_df_filtered, "DecisionTreeClassifier", 5)
+
+
+# In[ ]:
+
+
+
+
